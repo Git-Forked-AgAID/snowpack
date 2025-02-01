@@ -16,7 +16,7 @@
 
 
 ## Introduction
-- 
+- The problem we solved was developing and implementing a model that predicts **Snow Water Equivalent** across the Western United States.
 
 ## Models
 
