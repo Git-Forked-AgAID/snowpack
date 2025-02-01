@@ -99,15 +99,39 @@ def predict(model, dataloader):
     model.to(device) # Move model to assigned device
     model.eval()
 
+    all_predictions = []  # To store all predictions
+
     with torch.no_grad():
-        for inputs, _ in dataloader: # returns tuple, use _ to ignore second element
+        for inputs, _ in dataloader:  # We don't need targets for prediction
             inputs = inputs.to(device)
             predictions = model(inputs)
-            print(predictions[:5])
-            break
+            all_predictions.append(predictions.cpu().numpy())  # Store predictions
 
+    return all_predictions
+
+def predict_single_day(model, weather_tensor):
+    """
+    Predicts SWE for a single day's weather conditions.
+
+    Args:
+    - model (torch.nn.Module): Trained PyTorch model.
+    - weather_tensor (torch.Tensor): Tensor of shape (1, sequence_length, input_size).
+
+    Returns:
+    - Predicted SWE value as a float.
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)  # Move model to the correct device
+    model.eval()  # Set model to evaluation mode
+
+    with torch.no_grad():
+        weather_tensor = weather_tensor.to(device)  # Move input to device
+        prediction = model(weather_tensor)  # Run prediction
+        return prediction.item()  # Convert tensor to Python float
+    
 # Main 
 if __name__ == "__main__":
+
 
     exit_program = False
     to_train = False
@@ -126,16 +150,27 @@ if __name__ == "__main__":
 
         print("Predict? (y/n)")
         if input().lower() == 'y':
-            try:
-                load_model(model)  # Attempt to load the model
-                predict(model, dataloader)
-            except Exception as e:
-                print(f"Error: Model not found or not loaded correctly.")
+            print(model)
+            #try:
+            load_model(model)  # Attempt to load the model
+            first_predictions = predict(model, dataloader)
+            ####### Testing ################################################################
+            weather_data = np.array([[40.7128, -74.0060, 10, 1.5, 0, 3.2, 5, 10, 250, 1.3, 2.1, 1.9, 0.2]], dtype=np.float32)
+
+            # Convert to tensor and reshape to match (batch_size=1, sequence_length=1, input_size=13)
+            weather_tensor = torch.tensor(weather_data, dtype=torch.float32).unsqueeze(0)  # Shape: (1, 1, 13)
+
+            # Predict using the fixed function
+            second_prediction = predict_single_day(model, weather_tensor)
+
+            print("Predicted SWE:", second_prediction)
+                #################################################################################
+            #except Exception as e:
+                #print(f"Error: Model not found or not loaded correctly.")
 
         print("Exit? (y/n)")
         if input().lower() == 'y':
             exit_program = True
-
     print("Goodbye!")
 
 
