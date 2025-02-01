@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
-
-# Define Data & Load Dataset
 import pandas as pd
 import numpy as np
+from torch.utils.data import DataLoader, Dataset
+
+# Define Data & Load Dataset
+
 
 # TODO: Figure out data normalization
 # Normalize data
@@ -15,7 +16,8 @@ from sklearn.preprocessing import MinMaxScaler
 # Define the DataLoader
 
 ### Define the Neural Network Architecture Model ###########################################################
-# Long Short Term Memory (LSTM) Model
+# Long Short Term Memory (LSTM) Model (These are commonly used for Time-series forcasting)
+# Type of RNN that is capable of learning long-term dependencies
 class WeatherLSTM(nn.Module):
     # Constructor
     # takes input size (should be 15), Number of hidden layers (Non input/output layer), number of LSTM layers (input/output layers), and output size
@@ -54,6 +56,7 @@ def train_model(model, train_loader, num_epochs):
 
         ###############################
         # TODO: Link up the DataLoader
+        # TODO: Figure out batch size (How many samples to use in each iteration)
         for batch_X, batch_y in train_loader:
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
         ###############################
@@ -73,9 +76,9 @@ def save_model(model):
 # Main 
 if __name__ == "__main__":
     # Model Parameters
-    input_size = 13  # Number of numerical features (excluding Date & Station Name)
+    input_size = 15  # Number of numerical features
     hidden_size = 64 # number of layers connecting input to output
-    num_layers = 2
+    num_layers = 2 # LSTM layers (input/output layers)
 
     # TODO: Figure out what our output will look like
     output_size = 1  # Predicting precipitation or another target variable
