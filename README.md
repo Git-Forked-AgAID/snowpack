@@ -13,8 +13,8 @@
 - [Introduction](#introduction)
 - [Pre-Processing](#pre-processing)
 - [Training](#training)
-- [Presentation](#presentation)
 - [Preview](#preview)
+- [Haiku](#haiku)
 
 
 ## Introduction
