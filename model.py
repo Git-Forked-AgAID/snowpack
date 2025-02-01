@@ -42,25 +42,42 @@ class WeatherLSTM(nn.Module):
 def train_model(model, train_loader, num_epochs):
 
     # Training Configurations
+    idx = 0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
     model.to(device) # Move model to assigned device
     criterion = nn.MSELoss() # Loss function
     optimizer = optim.Adam(model.parameters(), lr=0.001) # Optimizer
 
+    # Debugging
+    # print("Training Model...")
+    # print(f"Device: {device}")
+
     for epoch in range(num_epochs):
         model.train() # Set model to training mode
 
+    for epoch in range(num_epochs):
+        model.train()  # Set model to training mode
+
         # Loop through each batch in the dataloader
         for inputs, targets in train_loader:
+            idx += 1
             batch_X, batch_y = inputs.to(device), targets.to(device)
+            
+            # TODO: Update with three dimensions (batch_size, seq_len, input_size) so sequence length goes back farther!!!
+            # print("Batch X Shape")
+            # print(batch_X.shape) 
 
-            optimizer.zero_grad() # Clear gradients (this clears previous gradiants in previous batch ensuring consistent training)
-            outputs = model(batch_X) # Forward pass (Generate predicitions)
-            loss = criterion(outputs, batch_y) 
-            loss.backward() # Backward pass (Calculate gradients based on loss)
-            optimizer.step() # Update weights
+            batch_X = batch_X.unsqueeze(1)  # Adds an extra dimension for seq_len (Is set to one, need to update to something much larger)
+            batch_y = batch_y.view(-1, 1)  # Reshape the target tensor to (32, 1) forcing it to fit dimensionality
 
-        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+            optimizer.zero_grad()  # Clear gradients from previous batch
+            outputs = model(batch_X)  # Forward pass (Generate predictions)
+            loss = criterion(outputs, batch_y)  # Compute the loss
+            loss.backward()  # Backward pass (Calculate gradients based on loss)
+            optimizer.step()  # Update model weights
+
+        print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+        wait = input("Press Enter to continue...")  # Debugging
 
 # Save the model
 def save_model(model):
@@ -87,7 +104,7 @@ if __name__ == "__main__":
     exit_program = False
     to_train = False
     # Model Parameters
-    input_size = 15  # Number of numerical features
+    input_size = 13  # Number of numerical features
     hidden_size = 64 # number of layers connecting input to output
     num_layers = 2 # LSTM layers (input/output layers)
     output_size = 1  # Predicting SWE
