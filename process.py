@@ -8,7 +8,7 @@ cols = ['Latitude', 'Longitude']
 snotel_df = swe_df.join(station_df.set_index(cols), on=cols)
 print(snotel_df)
 snotel_df = snotel_df.rename(columns={"Latitude":"lat", "Longitude":"lon"})
-snotel_df.to_csv("out.csv")
+snotel_df.to_csv("processed/out.csv")
 snotel_gdf = gpd.GeoDataFrame(snotel_df, geometry=gpd.points_from_xy(snotel_df.lat, snotel_df.lon))
 
 swe_df = pd.read_csv("./data/swe_data/SWE_values_all.csv")
@@ -28,5 +28,5 @@ for colname in ["Rmin", "SRAD", "precip", "tmax", "tmin", "windspeed", "SPH"]:
 print(met_df)
 met_gdf = gpd.GeoDataFrame(met_df, geometry=gpd.points_from_xy(met_df.lat, met_df.lon))
 met_gdf.plot()
-met_df.to_csv("met_out.csv")
+met_df.to_csv("processed/met_out.csv")
 input()

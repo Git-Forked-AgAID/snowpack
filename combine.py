@@ -1,8 +1,8 @@
 import pandas as pd
 import geopandas as gpd
 
-snotel_df = pd.read_csv('./out.csv')
-met_df = pd.read_csv('./met_out.csv')
+snotel_df = pd.read_csv('./processed/out.csv')
+met_df = pd.read_csv('./processed/met_out.csv')
 met_df = met_df.loc[met_df["date"]=="1990-01-01"]
 met_gdf = gpd.GeoDataFrame(met_df, geometry=gpd.points_from_xy(met_df.lat, met_df.lon))
 met_gdf.explore(height=300,width=400)
