@@ -11,8 +11,10 @@
 
 ## Table of Contents
 - [Introduction](#introduction)
-- [Models](#models)
+- [Pre-Processing](#pre-processing)
+- [Training](#training)
 - [Presentation](#presentation)
+- [Preview](#preview)
 
 
 ## Introduction
@@ -29,4 +31,4 @@ For our hyperparameters, we are utilizing __ Epochs to ensure that enough traini
 
 With all these factors combined, we are able to make accurate predications based on historical SNOWTEL data for future SWE.
 
-## Presentation
+## Preview
