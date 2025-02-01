@@ -32,3 +32,9 @@ For our hyperparameters, we are utilizing __ Epochs to ensure that enough traini
 With all these factors combined, we are able to make accurate predications based on historical SNOWTEL data for future SWE.
 
 ## Preview
+
+
+## Haiku
+Snow melts far too fast,
+mountains weep in silent streams,
+thirsty earth awaits.
