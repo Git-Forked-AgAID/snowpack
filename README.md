@@ -11,13 +11,13 @@
 
 ## Table of Contents
 - [Introduction](#introduction)
-- [Models](#models)
+- [Model](#model)
 - [Presentation](#presentation)
 
 
 ## Introduction
 - The problem we solved was developing and implementing a model that predicts **Snow Water Equivalent** across the Western United States.
 
-## Models
+## Model
 
 ## Presentation
