@@ -18,7 +18,7 @@ class SWEDataset(Dataset):
         - target_column (str): The column to predict.
         """
 
-        # Read data, set sequence length and target col
+        # Read data, set sequence length and make labelled columns for data
         self.data = pd.read_csv(csv_file)
         self.sequence_length = sequence_length
         #print(self.data.head())  # Check data
@@ -27,26 +27,21 @@ class SWEDataset(Dataset):
         # Convert 'Date' to datetime & drop NAS
         self.data.columns = self.data.columns.str.strip()
         self.data['date'] = pd.to_datetime(self.data['date'], errors='coerce')
-        #self.data = self.data.dropna()  # Drop rows with NaT/NaN
-        #print ("Data")
-        #print(self.data.head())  # Check data
-  
+        self.data = self.data.dropna()  # Drop rows with NaT/NaN
 
     # Get the number of samples in the dataset
     def __len__(self):
-        # print("Data Length")
-        # print(len(self.data))
-        return len(self.data) - self.sequence_length
+        return len(self.data) - self.sequence_length # Subtract sequence length to avoid index out of bounds
 
     # retreive a data sample
     def __getitem__(self, idx):
-        # Retrieve the row for the given index
-        row = self.data.iloc[idx]
+        # Generate a sequence of days days
+        sequence = self.data.iloc[idx:idx + self.sequence_length]
         
-        # Get the features and target
-        features = row[['lat', 'lon', 'elevation', 'southness', 'SWE', 'windspeed', 'tmin', 'tmax', 'SRAD', 'SPH', 'rmin', 'rmax', 'precipitation']].values
-        target = row['SWE']  # Assuming we are predicting SWE
+        # Get the features and target for the sequence
+        features = sequence[['lat', 'lon', 'elevation', 'southness', 'SWE', 'windspeed', 'tmin', 'tmax', 'SRAD', 'SPH', 'rmin', 'rmax', 'precipitation']].values
+        target = sequence['SWE'].iloc[-1]  # Target is SWE at the last timestep in the sequence
 
-        # Convert to tensors
-        features = np.array(features, dtype=np.float32) # Convert to np array so compatible with totensor
+        # Convert to tensors for PyTorch use
+        features = np.array(features, dtype=np.float32)  # Convert to np array so compatible with torch.tensor
         return torch.tensor(features, dtype=torch.float32), torch.tensor(target, dtype=torch.float32)
