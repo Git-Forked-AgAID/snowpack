@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, Dataset
 import dataset
 
 # Define Data & Load Dataset ###########################################################
-csv_file = "processed_data.csv" # TODO: Update path
+csv_file = "test.csv" # TODO: Update path
 SWEdataset = dataset.SWEDataset(csv_file)
 dataloader = DataLoader(SWEdataset, batch_size=32, shuffle=True)
 
@@ -51,7 +51,7 @@ def train_model(model, train_loader, num_epochs):
         model.train() # Set model to training mode
 
         # Loop through each batch in the dataloader
-        for inputs, targets in dataloader:
+        for inputs, targets in train_loader:
             batch_X, batch_y = inputs.to(device), targets.to(device)
 
             optimizer.zero_grad() # Clear gradients (this clears previous gradiants in previous batch ensuring consistent training)
@@ -84,6 +84,7 @@ def predict(model, dataloader):
 # Main 
 if __name__ == "__main__":
 
+    exit_program = False
     to_train = False
     # Model Parameters
     input_size = 15  # Number of numerical features
@@ -92,23 +93,24 @@ if __name__ == "__main__":
     output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
 
-    while exit == False:
+    while not exit_program:
         print("Train model? (y/n)")
-        if input() == 'y':
-            train_model(model, SWEdataset, 10)
+        if input().lower() == 'y':
+            train_model(model, dataloader, 10)  # Pass dataloader to train_model
             save_model(model)
 
         print("Predict? (y/n)")
-        if input() == 'y':
-            if load_model:
-                load_model(model)
+        if input().lower() == 'y':
+            try:
+                load_model(model)  # Attempt to load the model
                 predict(model, dataloader)
-            else:
-                print("Model not found")
+            except Exception as e:
+                print(f"Error: Model not found or not loaded correctly.")
+
         print("Exit? (y/n)")
-        if input() == 'y':
-            exit = True
-            break
+        if input().lower() == 'y':
+            exit_program = True
+
     print("Goodbye!")
 
 
