@@ -29,9 +29,13 @@ class WeatherLSTM(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size) # Output layer (Fully connected layer)
 
     def forward(self, x): 
-        out, _ = self.lstm(x) # Takes first element
-        out = self.fc(out[:, -1, :])  # Selects last timesteps output
-        return out 
+        lstm_out, _ = self.lstm(x)  # lstm_out will have shape (batch_size, seq_len, hidden_size)
+        
+        # Select the output of the last timestep
+        last_out = lstm_out[:, -1, :]  # Selects the last timestep output (batch_size, hidden_size)
+
+        # Pass the output through the fully connected layer
+        return self.fc(last_out)  # Final output (batch_size, output_size)
 
 
 # Notes:
@@ -53,9 +57,6 @@ def train_model(model, train_loader, num_epochs):
     # print(f"Device: {device}")
 
     for epoch in range(num_epochs):
-        model.train() # Set model to training mode
-
-    for epoch in range(num_epochs):
         model.train()  # Set model to training mode
 
         # Loop through each batch in the dataloader
@@ -63,12 +64,19 @@ def train_model(model, train_loader, num_epochs):
             idx += 1
             batch_X, batch_y = inputs.to(device), targets.to(device)
             
-            # TODO: Update with three dimensions (batch_size, seq_len, input_size) so sequence length goes back farther!!!
+            # Debugging
             # print("Batch X Shape")
             # print(batch_X.shape) 
+            # print("Batch Y Shape")
+            # print(batch_y.shape)
+            #                              /
+            # Old unsequential re-shaping V
+            #batch_X = batch_X.unsqueeze(1)  # Adds an extra dimension for seq_len (Is set to one, need to update to something much larger)
+            #batch_y = batch_y.view(-1, 1)  # Reshape the target tensor to (32, 1) forcing it to fit dimensionality
 
-            batch_X = batch_X.unsqueeze(1)  # Adds an extra dimension for seq_len (Is set to one, need to update to something much larger)
-            batch_y = batch_y.view(-1, 1)  # Reshape the target tensor to (32, 1) forcing it to fit dimensionality
+            batch_X = batch_X.view(-1, 365, 13)  # Ensure correct shape for LSTM
+            batch_y = batch_y.view(-1, 1)  # Reshape target tensor to (batch_size, 1)
+
 
             optimizer.zero_grad()  # Clear gradients from previous batch
             outputs = model(batch_X)  # Forward pass (Generate predictions)
