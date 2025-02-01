@@ -30,9 +30,9 @@ cols = ['lat', 'lon']
 clean = clean.join(id_df.set_index(cols), on=cols)
 
 print(clean)
-clean.to_csv("clean_main.csv")
+clean.to_csv("clean_main.csv", index=False)
 gdf = gpd.GeoDataFrame(clean, geometry=gpd.points_from_xy(clean.lon, clean.lat))
 a = {k:v for k,v in gdf.groupby("date")}["1991-01-01"]
 print(a)
-a.to_csv("clean_main_day1.csv")
+a.to_csv("clean_main_day1.csv", index=False)
 a.explore("swe")
