@@ -4,16 +4,12 @@ import torch.optim as optim
 import pandas as pd
 import numpy as np
 from torch.utils.data import DataLoader, Dataset
+import dataset
 
-# Define Data & Load Dataset
-
-
-# TODO: Figure out data normalization
-# Normalize data
-from sklearn.preprocessing import MinMaxScaler
-
-# TODO: Define the DataLoader
-# Define the DataLoader
+# Define Data & Load Dataset ###########################################################
+csv_file = "processed_data.csv" # TODO: Update path
+SWEdataset = dataset.SWEDataset(csv_file)
+dataloader = DataLoader(SWEdataset, batch_size=32, shuffle=True)
 
 ### Define the Neural Network Architecture Model ###########################################################
 # Long Short Term Memory (LSTM) Model (These are commonly used for Time-series forcasting)
@@ -54,12 +50,9 @@ def train_model(model, train_loader, num_epochs):
     for epoch in range(num_epochs):
         model.train() # Set model to training mode
 
-        ###############################
-        # TODO: Link up the DataLoader
-        # TODO: Figure out batch size (How many samples to use in each iteration)
-        for batch_X, batch_y in train_loader:
-            batch_X, batch_y = batch_X.to(device), batch_y.to(device)
-        ###############################
+        # Loop through each batch in the dataloader
+        for inputs, targets in dataloader:
+            batch_X, batch_y = inputs.to(device), targets.to(device)
 
             optimizer.zero_grad() # Clear gradients (this clears previous gradiants in previous batch ensuring consistent training)
             outputs = model(batch_X) # Forward pass (Generate predicitions)
@@ -73,15 +66,49 @@ def train_model(model, train_loader, num_epochs):
 def save_model(model):
     torch.save(model.state_dict(), 'SWE_Predictor.pth')
 
+def load_model(model):
+    model.load_state_dict(torch.load('SWE_Predictor.pth'))
+
+def predict(model, dataloader):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
+    model.to(device) # Move model to assigned device
+    model.eval()
+
+    with torch.no_grad():
+        for inputs, _ in dataloader: # returns tuple, use _ to ignore second element
+            inputs = inputs.to(device)
+            predictions = model(inputs)
+            print(predictions[:5])
+            break
+
 # Main 
 if __name__ == "__main__":
+
+    to_train = False
     # Model Parameters
     input_size = 15  # Number of numerical features
     hidden_size = 64 # number of layers connecting input to output
     num_layers = 2 # LSTM layers (input/output layers)
-
-    # TODO: Figure out what our output will look like
-    output_size = 1  # Predicting precipitation or another target variable
+    output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
-    train_model(model, 10)
-    save_model(model)
+
+    while exit == False:
+        print("Train model? (y/n)")
+        if input() == 'y':
+            train_model(model, SWEdataset, 10)
+            save_model(model)
+
+        print("Predict? (y/n)")
+        if input() == 'y':
+            if load_model:
+                load_model(model)
+                predict(model, dataloader)
+            else:
+                print("Model not found")
+        print("Exit? (y/n)")
+        if input() == 'y':
+            exit = True
+            break
+    print("Goodbye!")
+
+
