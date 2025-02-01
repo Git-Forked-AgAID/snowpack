@@ -1,5 +1,5 @@
 # Agathon-Snowpack
-Team Name: Git Forked
+**Team Name: Git Forked**
 
 ## Team Members:
 - Adam Caudle
