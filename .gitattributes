@@ -1,2 +1,15 @@
 met_out.csv filter=lfs diff=lfs merge=lfs -text
 out.csv filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_Rmin.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_tmax.csv filter=lfs diff=lfs merge=lfs -text
+data/swe_data/SWE_values_all.csv filter=lfs diff=lfs merge=lfs -text
+processed/met_out.csv filter=lfs diff=lfs merge=lfs -text
+processed/out.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_Rmax.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_SRAD.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_precip.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_tmin.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_windspeed.csv filter=lfs diff=lfs merge=lfs -text
+data/swe_data/Station_Info.csv filter=lfs diff=lfs merge=lfs -text
+data/meteorological_data/Modified_Output_SPH.csv filter=lfs diff=lfs merge=lfs -text
