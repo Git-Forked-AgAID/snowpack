@@ -1,4 +1,4 @@
-# Agathon-Snowpack
+# Digital AgATH0N 2025 Snowpack prediction
 **Team Name: Git Forked**
 
 ## Team Members:
