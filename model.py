@@ -6,12 +6,12 @@ import pandas as pd
 import numpy as np
 from torch.utils.data import DataLoader, Dataset
 import dataset
-from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE
+from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE, SEQ_SIZE, NEURONS
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-SWEdataset = dataset.SWEDataset("./clean_main.csv")
-dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=True)
+SWEdataset = dataset.SWEDataset("./stations/0.csv")
+dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=False)
 
 with open("log2.txt", "w") as f:
     f.write(f"loaded\n")
@@ -23,11 +23,9 @@ class WeatherLSTM(nn.Module):
         self.num_layers = num_layers
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
         self.fc = nn.Sequential(
-            nn.Linear(hidden_size, 2, bias=True),
+            nn.Linear(hidden_size, self.hidden_size, bias=True),
             nn.ReLU(),
-            # nn.Linear(20, 80, bias=True),
-            # nn.ReLU(),
-            nn.Linear(2, output_size, bias=True),
+            nn.Linear(self.hidden_size, output_size, bias=True),
         )
 
     def forward(self, x, h0=None, c0=None):
@@ -54,7 +52,7 @@ def train_model(model, train_loader, num_epochs):
 
     # Setup Graph
     ax = plt.gca()
-    ax.set_ylim([0, .02])
+    ax.set_ylim([0, 1])
 
     h0, c0 = None, None
 
@@ -71,6 +69,9 @@ def train_model(model, train_loader, num_epochs):
             # print("targets")
             # print (targets)
             batch_X, batch_y = inputs.to(device), targets.to(device)
+            batch_y = batch_y.view(BATCH_SIZE, SEQ_SIZE, 1)
+            # print(batch_X.shape, batch_y.shape)
+            # input()
             # print(batch_X, batch_y)
             # input()
             # outputs = []
@@ -99,7 +100,7 @@ def train_model(model, train_loader, num_epochs):
 
             with open("log2.txt", "a") as f:
                 f.write(f"{counter}, loss:{loss.item()}\n")
-            print({counter}, "Loss", loss.item())
+            print("\t", {counter}, "Loss", loss.item())
             counter += 1
 
             # graph loss in real time
@@ -152,8 +153,8 @@ if __name__ == "__main__":
     to_train = False
 
     input_size = INPUT_SIZE  # Number of numerical features
-    hidden_size = HIDDEN_LAYERS # number of layers connecting input to output
-    num_layers = 2   # LSTM layers (input/output layers)
+    hidden_size = NEURONS # 
+    num_layers = HIDDEN_LAYERS   # LSTM layers (input/output layers)
     output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
 
