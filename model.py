@@ -1,3 +1,4 @@
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,13 +8,12 @@ from torch.utils.data import DataLoader, Dataset
 import dataset
 from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE
 
-
-SWEdataset = dataset.SWEDataset("./clean_main_day1.csv")
+SWEdataset = dataset.SWEDataset("./clean_main.csv")
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=True)
 
 class WeatherLSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
-        super().__init__()
+        super(WeatherLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
@@ -27,7 +27,8 @@ class WeatherLSTM(nn.Module):
 
         out, (hn, cn) = self.lstm(x)  # lstm_out will have shape (batch_size, seq_len, hidden_size)
         # print(out)
-        out = self.fc(out[:,-1, :])
+        # print(out)
+        out = self.fc(out[-1, :])
         # out = self.fc(out[-1, :])
 
         return out, hn, cn
@@ -35,7 +36,6 @@ class WeatherLSTM(nn.Module):
 def train_model(model, train_loader, num_epochs):
 
     # Training Configurations
-    idx = 0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
     model.to(device) # Move model to assigned device
     criterion = nn.MSELoss() # Loss function
@@ -47,23 +47,36 @@ def train_model(model, train_loader, num_epochs):
         model.train()  # Set model to training mode
 
         # Loop through each batch in the dataloader
+
+        # outputs = []
         for inputs, targets in train_loader:
-            idx += 1
+            # print(len(inputs), len(targets))
             batch_X, batch_y = inputs.to(device), targets.to(device)
+            outputs = []
+            for row in batch_X:
+                # print(row)
+                row = row.view(1, INPUT_SIZE)
+                output1, h0, c0 = model(row, h0, c0)  # Forward pass (Generate predictions)
+                outputs.append(output1)
+            # print("@@@@@@@@@", outputs)
 
-            optimizer.zero_grad()  # Clear gradients from previous batch
-            outputs, h0, c0 = model(batch_X, h0, c0)  # Forward pass (Generate predictions)
+            # optimizer.zero_grad()  # Clear gradients from previous batch
 
-
-            outputs = outputs.view(*batch_y.shape)
+            # print("\n\n\n")
+            # print(batch_X, batch_X.shape)
+            # print(outputs, outputs.shape)
+            # outputs = outputs.view(*batch_y.shape)
+            outputs = torch.tensor(outputs, requires_grad=True).view(-1, 1)
+            # print(outputs.shape)
             loss = criterion(outputs, batch_y)  # Compute the loss
-            # input("A")
             loss.backward()  # Backward pass (Calculate gradients based on loss)
-            # input("B")
             optimizer.step()  # Update model weights
+            h0 = h0.detach()
+            c0 = c0.detach()
 
 
         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+        sys.stdout.flush()
     return h0, c0
         # input("Press Enter to continue...")  # Debugging
 
