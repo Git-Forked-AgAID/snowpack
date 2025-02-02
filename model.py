@@ -12,6 +12,9 @@ from sklearn.model_selection import train_test_split
 SWEdataset = dataset.SWEDataset("./clean_main.csv")
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=True)
 
+with open("log2.txt", "w") as f:
+    f.write(f"loaded\n")
+
 class WeatherLSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
         super(WeatherLSTM, self).__init__()
@@ -80,11 +83,15 @@ def train_model(model, train_loader, num_epochs):
             h0 = h0.detach()
             c0 = c0.detach()
 
+            with open("log2.txt", "a") as f:
+                f.write(f"{counter}, loss:{loss.item()}\n")
             print({counter}, "Loss", loss.item())
             counter += 1
 
         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
-        sys.stdout.flush()
+        with open("log2.txt", "a") as f:
+            f.write(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}\n")
+
     return h0, c0
         # input("Press Enter to continue...")  # Debugging
 
