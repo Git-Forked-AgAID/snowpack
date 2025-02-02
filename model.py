@@ -33,9 +33,7 @@ class WeatherLSTM(nn.Module):
             h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
             c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
 
-
         out, (hn, cn) = self.lstm(x)  # lstm_out will have shape (batch_size, seq_len, hidden_size)
-        # print(out)
         # print(out)
         out = self.fc(out)
         # out = self.fc(out[-1, :])
@@ -52,7 +50,7 @@ def train_model(model, train_loader, num_epochs):
 
     # Setup Graph
     ax = plt.gca()
-    ax.set_ylim([0, 1])
+    ax.set_ylim([0, .1])
 
     h0, c0 = None, None
 
@@ -69,7 +67,8 @@ def train_model(model, train_loader, num_epochs):
             # print("targets")
             # print (targets)
             batch_X, batch_y = inputs.to(device), targets.to(device)
-            batch_y = batch_y.view(BATCH_SIZE, SEQ_SIZE, 1)
+            #print(batch_y.shape)
+            batch_y = batch_y.view(len(targets), SEQ_SIZE, 1)
             # print(batch_X.shape, batch_y.shape)
             # input()
             # print(batch_X, batch_y)
@@ -100,13 +99,15 @@ def train_model(model, train_loader, num_epochs):
 
             with open("log2.txt", "a") as f:
                 f.write(f"{counter}, loss:{loss.item()}\n")
-            print("\t", {counter}, "Loss", loss.item())
+            #print("\t", {counter}, "Loss", loss.item())
             counter += 1
 
             # graph loss in real time
-            ax.set_xlim([0, counter * (epoch +1)])
-            plt.scatter((counter * (epoch + 1)), loss.item())
-            plt.pause(0.05)
+        #ax.set_xlim([0, counter * (epoch +1)])
+        ax.set_xlim([0, num_epochs])
+        # plt.scatter((counter * (epoch + 1)), loss.item())
+        plt.scatter(epoch, loss.item())
+        plt.pause(0.05)
             
 
         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
@@ -120,25 +121,10 @@ def train_model(model, train_loader, num_epochs):
 def save_model(model):
     torch.save(model.state_dict(), f'SWE_Predictor_{HIDDEN_LAYERS}_{EPOCHS}epochs.pth')
 
-def load_model(model):
-    model.load_state_dict(torch.load('SWE_Predictor.pth'))
+def load_model(model, fname):
+    model.load_state_dict(torch.load(fname))
 
-def predict(model, dataloader, h0, c0):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
-    model.to(device) # Move model to assigned device
-    model.eval()
-
-    all_predictions = []  # To store all predictions
-
-    with torch.no_grad():
-        for inputs, _ in dataloader:  # We don't need targets for prediction
-            inputs = inputs.to(device)
-            predictions = model(inputs, h0, c0)
-            all_predictions.append(predictions.cpu().numpy())  # Store predictions
-
-    return all_predictions
-
-def predict_single_day(model, weather_tensor, h0, c0):
+def predict_single_day(model, weather_tensor, h0=None, c0=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)  # Move model to the correct device
     model.eval()  # Set model to evaluation mode
@@ -146,7 +132,7 @@ def predict_single_day(model, weather_tensor, h0, c0):
     with torch.no_grad():
         weather_tensor = weather_tensor.to(device)  # Move input to device
         prediction = model(weather_tensor, h0, c0)  # Run prediction
-        return prediction.item()  # Convert tensor to Python float
+        return prediction
 
 if __name__ == "__main__":
     exit_program = False
@@ -158,31 +144,41 @@ if __name__ == "__main__":
     output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
 
-    # while not exit_program:
-        # print("Train model? (y/n)")
+    if to_train:
+        h0, c0 = None, None
         # if input().lower() == 'y':
-    h0, c0 = None, None
-    # if input().lower() == 'y':
-    print("Splitting data...")
-    #train_data, test_data = train_test_split(SWEdataset, test_size=0.2, shuffle=True)
-    print("Training model...")
-    h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
-    save_model(model)
+        print("Splitting data...")
+        #train_data, test_data = train_test_split(SWEdataset, test_size=0.2, shuffle=True)
+        print("Training model...")
+        h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
+        print("Saving model...")
+        save_model(model)
+    else:
+        load_model(model, "./SWE_Predictor_8_10epochs.pth")
+        fmin = SWEdataset.feature_scaler.data_min_
+        fmax = SWEdataset.feature_scaler.data_max_
+        tmin = SWEdataset.target_scaler.data_min_
+        tmax = SWEdataset.target_scaler.data_max_
+        # print(fmin, fmax, tmin, tmax)
 
-        # print("Predict? (y/n)")
-        # if input().lower() == 'y':
-        #     if to_train:
-        #         print("Loading model...")
-        #         model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
-        #         model.load_state_dict(torch.load(SWEdataset, weights_only=True))
-        #     print("Predicting...")
-        #     predictions = predict(model, dataloader, None, None)
-        #     print(predictions)
-        # print("Exit? (y/n)")
-        # if input().lower() == 'y':
-        #     exit_program = True
-        #     print("Exiting...")
-        #     break
-        # else:
-        #     print("Continuing...")
-        #     continue
+        #inp = torch.tensor([33.65352,-109.30877,int(pd.to_datetime("1991-01-01").timestamp()*(10**9)),9027,0.888151729,2.16,-9.3,7.92,117.325,0.0016,19.78,69.42,0.0,0.0276550772915165], dtype=torch.float64)
+        # inp = SWEdataset.inptest
+        inp = torch.tensor([45.19085,-119.25392,int(pd.to_datetime("1991-01-01").timestamp()*(10**9)),5770,-0.124565305,4.01,-7.94,-0.86,71.25,0.0025,64.75,92.91,0.0,0.0448925261040153], dtype=torch.float64)
+
+        inp = (inp-fmin)/(fmax-fmin)
+        # inp = torch.tensor(inp, dtype=torch.float32)
+
+        # TODO::: WORRY ABOUT THE dtype F64??
+
+        print(inp.view(-1).tolist())
+        inp = inp.view(1, -1)
+        pred = predict_single_day(model, inp.type(torch.float32))[0]
+
+        pred = pred.cpu()
+
+        print(pred.tolist()[0])
+
+
+        print(tmax, tmin)
+        scaled_pred = (pred * (tmax-tmin)) + (tmin)
+        print(scaled_pred.tolist()[0])

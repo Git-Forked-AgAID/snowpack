@@ -7,11 +7,11 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 VALS = ['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tmax', 'srad', 'sph', 'rmin', 'rmax', 'precip', 'dist_from_met']
 # VALS = ['lat', 'lon']
 INPUT_SIZE = len(VALS)
-HIDDEN_LAYERS = 4
+HIDDEN_LAYERS = 8
 EPOCHS = 10
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 SEQ_SIZE = 100
-NEURONS = 196
+NEURONS = 56
 
 # Data will be in CSV form with the following columns:
     # Date, Name, Lat, Long, elevation, southness, SWE, <------ From SWE_Values.csv & Station_info.csv
