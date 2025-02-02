@@ -6,11 +6,28 @@ import pandas as pd
 import numpy as np
 from torch.utils.data import DataLoader, Dataset
 import dataset
-from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE, SEQ_SIZE, NEURONS
-from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE, SEQ_SIZE, NEURONS, VALS
 import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-SWEdataset = dataset.SWEDataset("./stations/0.csv")
+mms = MinMaxScaler()
+alldata = pd.read_csv("./stations/0.csv")
+alldata['date'] = pd.to_datetime(alldata['date']).astype(int)
+alldata[VALS + ['swe']] = mms.fit_transform(alldata[VALS+['swe']])
+# alldata[['swe']] = mms.fit_transform(alldata['swe'])
+
+train_ind = int(len(alldata)*0.8)
+train = alldata[train_ind:]
+train_X = torch.tensor(np.array(train[VALS])).type(torch.float32)
+train_Y = torch.tensor(np.array(train['swe'])).type(torch.float32)
+
+test = alldata[:train_ind]
+test_X = torch.tensor(np.array(test[VALS])).type(torch.float32)
+test_Y = torch.tensor(np.array(test['swe'])).type(torch.float32)
+
+SWEdataset = dataset.SWEDataset(train, test=False)
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=False)
 
 with open("log2.txt", "w") as f:
@@ -50,7 +67,9 @@ def train_model(model, train_loader, num_epochs):
 
     # Setup Graph
     ax = plt.gca()
-    ax.set_ylim([0, .1])
+    fig, ax = plt.subplots()
+
+    # ax.set_ylim([0, .1])
 
     h0, c0 = None, None
 
@@ -61,35 +80,10 @@ def train_model(model, train_loader, num_epochs):
 
         # outputs = []
         for inputs, targets in train_loader:
-            # print(len(inputs), len(targets))
-            # print("inputs")
-            # print (inputs)
-            # print("targets")
-            # print (targets)
             batch_X, batch_y = inputs.to(device), targets.to(device)
-            #print(batch_y.shape)
             batch_y = batch_y.view(len(targets), SEQ_SIZE, 1)
-            # print(batch_X.shape, batch_y.shape)
-            # input()
-            # print(batch_X, batch_y)
-            # input()
-            # outputs = []
-            # for row in batch_X:
-                # print(row)
-            # row = row.view(1, INPUT_SIZE)
             outputs, h0, c0 = model(batch_X, h0, c0)  # Forward pass (Generate predictions)
-            # outputs.append(output1)
-            # print("@@@@@@@@@", outputs)
-
-            # optimizer.zero_grad()  # Clear gradients from previous batch
-
-            # print("\n\n\n")
-            # print(batch_X, batch_X.shape)
-            # print(outputs, outputs.shape)
-            # outputs = outputs.view(*batch_y.shape)
-            # outputs = torch.tensor(outputs, requires_grad=True)#.view(-1, 1)
             outputs = outputs.to(device)
-            # print(outputs.shape)
             loss = criterion(outputs, batch_y)  # Compute the loss
             loss.backward()  # Backward pass (Calculate gradients based on loss)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) # Clip gradients to avoid exploding gradients
@@ -99,18 +93,27 @@ def train_model(model, train_loader, num_epochs):
 
             with open("log2.txt", "a") as f:
                 f.write(f"{counter}, loss:{loss.item()}\n")
-            #print("\t", {counter}, "Loss", loss.item())
             counter += 1
 
-            # graph loss in real time
-        #ax.set_xlim([0, counter * (epoch +1)])
-        ax.set_xlim([0, num_epochs])
-        # plt.scatter((counter * (epoch + 1)), loss.item())
-        plt.scatter(epoch, loss.item())
-        plt.pause(0.05)
-            
 
-        print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+        model.eval()
+        with torch.no_grad():
+            y_pred,*_ = model(train_X)
+            y_pred = y_pred.view(-1)
+            # print(y_pred)
+            train_rmse = np.sqrt(criterion(y_pred, train_Y))
+            y_pred,*_ = model(test_X)
+            y_pred = y_pred.view(-1)
+            test_rmse = np.sqrt(criterion(y_pred, test_Y))
+        print("Epoch %d: train RMSE %.4f, test RMSE %.4f" % (epoch, train_rmse, test_rmse))
+
+        ax.set_xlim([0, epoch+1])
+        plt.scatter(epoch, test_rmse, c="blue")
+        plt.scatter(epoch, train_rmse, c="red")
+        plt.pause(0.05)
+
+
+#         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
         with open("log2.txt", "a") as f:
             f.write(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}\n")
 
@@ -136,10 +139,10 @@ def predict_single_day(model, weather_tensor, h0=None, c0=None):
 
 if __name__ == "__main__":
     exit_program = False
-    to_train = False
+    to_train = True
 
     input_size = INPUT_SIZE  # Number of numerical features
-    hidden_size = NEURONS # 
+    hidden_size = NEURONS #
     num_layers = HIDDEN_LAYERS   # LSTM layers (input/output layers)
     output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
@@ -159,19 +162,31 @@ if __name__ == "__main__":
         fmax = SWEdataset.feature_scaler.data_max_
         tmin = SWEdataset.target_scaler.data_min_
         tmax = SWEdataset.target_scaler.data_max_
-        # print(fmin, fmax, tmin, tmax)
+        print(fmin, fmax, tmin, tmax)
+        print(type(fmin))
 
         #inp = torch.tensor([33.65352,-109.30877,int(pd.to_datetime("1991-01-01").timestamp()*(10**9)),9027,0.888151729,2.16,-9.3,7.92,117.325,0.0016,19.78,69.42,0.0,0.0276550772915165], dtype=torch.float64)
         # inp = SWEdataset.inptest
-        inp = torch.tensor([45.19085,-119.25392,int(pd.to_datetime("1991-01-01").timestamp()*(10**9)),5770,-0.124565305,4.01,-7.94,-0.86,71.25,0.0025,64.75,92.91,0.0,0.0448925261040153], dtype=torch.float64)
+        # inp = np.array([45.19085,-119.25392,int(pd.to_datetime("1991-01-01").timestamp()*(10**9)),5770,-0.124565305,4.01,-7.94,-0.86,71.25,0.0025,64.75,92.91,0.0,0.0448925261040153])
+        # inp = np.array()
+        inp = SWEdataset.features[0:100]
+        inp = torch.tensor(np.array(inp))
 
-        inp = (inp-fmin)/(fmax-fmin)
-        # inp = torch.tensor(inp, dtype=torch.float32)
 
-        # TODO::: WORRY ABOUT THE dtype F64??
+#         # print((inp-fmin))
+#         # print((fmax-fmin))
+#         # input()
+#         inp = (inp-fmin)/(fmax-fmin)
+#         inp[np.isnan(inp)] = 0
+#         inp = torch.tensor(inp)
+#         print(inp)
+#         # inp = torch.tensor(inp, dtype=torch.float32)
 
-        print(inp.view(-1).tolist())
-        inp = inp.view(1, -1)
+#         # TODO::: WORRY ABOUT THE dtype F64??
+
+        # print(inp.view(-1).tolist())
+        print(inp.shape)
+        # inp = inp.view(1, -1)
         pred = predict_single_day(model, inp.type(torch.float32))[0]
 
         pred = pred.cpu()
