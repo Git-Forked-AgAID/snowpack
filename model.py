@@ -97,7 +97,7 @@ def train_model(model, train_loader, num_epochs):
 
 # Save the model
 def save_model(model):
-    torch.save(model.state_dict(), 'SWE_Predictor.pth')
+    torch.save(model.state_dict(), f'SWE_Predictor_{HIDDEN_LAYERS}_{EPOCHS}epochs.pth')
 
 def load_model(model):
     model.load_state_dict(torch.load('SWE_Predictor.pth'))
@@ -137,32 +137,31 @@ if __name__ == "__main__":
     output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
 
-    while not exit_program:
-        print("Train model? (y/n)")
-        if input().lower() == 'y':
-            h0, c0 = None, None
-            # if input().lower() == 'y':
-            print("Splitting data...")
-            #train_data, test_data = train_test_split(SWEdataset, test_size=0.2, shuffle=True)
-            print("Training model...")
-            h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
-            save_model(model)
+    # while not exit_program:
+        # print("Train model? (y/n)")
+        # if input().lower() == 'y':
+    h0, c0 = None, None
+    # if input().lower() == 'y':
+    print("Splitting data...")
+    #train_data, test_data = train_test_split(SWEdataset, test_size=0.2, shuffle=True)
+    print("Training model...")
+    h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
+    save_model(model)
 
-        print("Predict? (y/n)")
-        if input().lower() == 'y':
-            if to_train:
-                print("Loading model...")
-                model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
-                model.load_state_dict(torch.load(SWEdataset, weights_only=True))
-            print("Predicting...")
-            predictions = predict(model, dataloader, None, None)
-            print(predictions)
-        print("Exit? (y/n)")
-        if input().lower() == 'y':
-            exit_program = True
-            print("Exiting...")
-            break
-        else:
-            print("Continuing...")
-            continue
-
+        # print("Predict? (y/n)")
+        # if input().lower() == 'y':
+        #     if to_train:
+        #         print("Loading model...")
+        #         model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
+        #         model.load_state_dict(torch.load(SWEdataset, weights_only=True))
+        #     print("Predicting...")
+        #     predictions = predict(model, dataloader, None, None)
+        #     print(predictions)
+        # print("Exit? (y/n)")
+        # if input().lower() == 'y':
+        #     exit_program = True
+        #     print("Exiting...")
+        #     break
+        # else:
+        #     print("Continuing...")
+        #     continue
