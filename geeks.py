@@ -56,7 +56,7 @@ print('norm_train_swe',df['swe'].iloc[N])
 #         ys.append(y)
 #     return np.array(xs), np.array(ys)
 
-seq_length = 10
+#seq_length = 10
 # X, y = create_sequences(df, seq_length)
 
 # Convert data to PyTorch tensors
@@ -99,24 +99,31 @@ h0, c0 = None, None  # Initialize hidden and cell states
 # dataset = torch.utils.data.TensorDataset(trainX, trainY)
 # trainloader = torch.utils.data.DataLoader(dataset, batch_size=BATCHP_SIZE, shuffle=True)
 
+# Setup Graph
+ax = plt.gca()
+ax.set_ylim([.01, .03])
+counter = 0;
+
 for epoch in range(num_epochs):
     model.train()
-    print("X Shape")
-    print(trainX.shape)
-    print("Y Shape")
-    print(trainY.shape)
+    # print("X Shape")
+    # print(trainX.shape)
+    # print("Y Shape")
+    # print(trainY.shape)
 
     #for batchX, batchY in trainloader:
+    counter += 1
     optimizer.zero_grad()
 
     # Forward pass
     #trainX = trainX
-    trainX = trainX.view(-1, seq_length, len(VALS))
+    trainX = trainX.view(-1, 1, len(VALS))
+    #trainX = trainX.view(-1, seq_length, len(VALS))
     outputs, h0, c0 = model(trainX, h0, c0)
 
     print("Outputs Shape")
     print(outputs.shape)
-    
+
     # Compute loss
     print("Computing loss")
     loss = criterion(outputs, trainY)
@@ -131,21 +138,27 @@ for epoch in range(num_epochs):
 
     if (epoch+1) % 10 == 0:
         print(f'Epooch [{epoch+1}/{num_epochs}], Loss: {loss.item()}')
+        input()
+
+                # graph loss in real time
+    ax.set_xlim([0, counter * (epoch +1)])
+    plt.scatter((counter * (epoch + 1)), loss.item())
+    plt.pause(0.05)
 
     # Predicted outputs
 model.eval()
 predicted, _, _ = model(trainX, h0, c0)
 
 # Adjusting the original data and prediction for plotting
-original = df[seq_length:]  # Original data from the end of the first sequence
-time_steps = np.arange(seq_length, len(df))  # Corresponding time steps
+# original = df[seq_length:]  # Original data from the end of the first sequence
+# time_steps = np.arange(seq_length, len(df))  # Corresponding time steps
 
-# Plotting
-plt.figure(figsize=(12, 6))
-plt.plot(time_steps, original, label='Original Data')
-plt.plot(time_steps, predicted.detach().numpy(), label='Predicted Data', linestyle='--')
-plt.title('LSTM Model Predictions vs. Original Data')
-plt.xlabel('Time Step')
-plt.ylabel('Value')
-plt.legend()
-plt.show()
+# # Plotting
+# plt.figure(figsize=(12, 6))
+# plt.plot(time_steps, original, label='Original Data')
+# plt.plot(time_steps, predicted.detach().numpy(), label='Predicted Data', linestyle='--')
+# plt.title('LSTM Model Predictions vs. Original Data')
+# plt.xlabel('Time Step')
+# plt.ylabel('Value')
+# plt.legend()
+# plt.show()
