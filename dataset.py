@@ -2,14 +2,14 @@ import torch
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 VALS = ['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tmax', 'srad', 'sph', 'rmin', 'rmax', 'precip', 'dist_from_met']
 # VALS = ['lat', 'lon']
 INPUT_SIZE = len(VALS)
-HIDDEN_LAYERS = 512
-EPOCHS = 20
-BATCH_SIZE =  2**19
+HIDDEN_LAYERS = 256
+EPOCHS = 10
+BATCH_SIZE =  64
 # SEQ_SIZE = 100
 
 # Data will be in CSV form with the following columns:
@@ -44,7 +44,7 @@ class SWEDataset(Dataset):
         self.target_scaler = MinMaxScaler()
         self.data['swe'] = self.target_scaler.fit_transform(self.data[['swe']])
         print('norm_train_swe',self.data['swe'].iloc[N])
-        self.inptest = torch.tensor(self.data[VALS].iloc[N])
+        # self.inptest = torch.tensor(self.data[VALS].iloc[N])
 
         self.data.to_csv("normalize_clean_main.csv", index=False)
 
@@ -57,7 +57,6 @@ class SWEDataset(Dataset):
         row = self.data.iloc[idx]
 
         features = row[VALS].values
-        # features = row[['lat', 'lon']].values
         target = row['swe']
 
         # Convert to tensors for PyTorch use

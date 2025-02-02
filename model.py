@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader, Dataset
 import dataset
 from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
 SWEdataset = dataset.SWEDataset("./clean_main.csv")
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -21,7 +22,13 @@ class WeatherLSTM(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_size, 2, bias=True),
+            nn.ReLU(),
+            # nn.Linear(20, 80, bias=True),
+            # nn.ReLU(),
+            nn.Linear(2, output_size, bias=True),
+        )
 
     def forward(self, x, h0=None, c0=None):
         if h0 is None or c0 is None:
@@ -32,7 +39,7 @@ class WeatherLSTM(nn.Module):
         out, (hn, cn) = self.lstm(x)  # lstm_out will have shape (batch_size, seq_len, hidden_size)
         # print(out)
         # print(out)
-        out = self.fc(out[-1, :])
+        out = self.fc(out)
         # out = self.fc(out[-1, :])
 
         return out, hn, cn
@@ -43,7 +50,11 @@ def train_model(model, train_loader, num_epochs):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
     model.to(device) # Move model to assigned device
     criterion = nn.MSELoss() # Loss function
-    optimizer = optim.Adam(model.parameters(), lr=0.001) # Optimizer
+    optimizer = optim.SGD(model.parameters(), lr=.0001) # Optimizer
+
+    # Setup Graph
+    ax = plt.gca()
+    ax.set_ylim([0, .02])
 
     h0, c0 = None, None
 
@@ -60,12 +71,14 @@ def train_model(model, train_loader, num_epochs):
             # print("targets")
             # print (targets)
             batch_X, batch_y = inputs.to(device), targets.to(device)
-            outputs = []
-            for row in batch_X:
+            # print(batch_X, batch_y)
+            # input()
+            # outputs = []
+            # for row in batch_X:
                 # print(row)
-                row = row.view(1, INPUT_SIZE)
-                output1, h0, c0 = model(row, h0, c0)  # Forward pass (Generate predictions)
-                outputs.append(output1)
+            # row = row.view(1, INPUT_SIZE)
+            outputs, h0, c0 = model(batch_X, h0, c0)  # Forward pass (Generate predictions)
+            # outputs.append(output1)
             # print("@@@@@@@@@", outputs)
 
             # optimizer.zero_grad()  # Clear gradients from previous batch
@@ -74,11 +87,12 @@ def train_model(model, train_loader, num_epochs):
             # print(batch_X, batch_X.shape)
             # print(outputs, outputs.shape)
             # outputs = outputs.view(*batch_y.shape)
-            outputs = torch.tensor(outputs, requires_grad=True).view(-1, 1)
+            # outputs = torch.tensor(outputs, requires_grad=True)#.view(-1, 1)
             outputs = outputs.to(device)
             # print(outputs.shape)
             loss = criterion(outputs, batch_y)  # Compute the loss
             loss.backward()  # Backward pass (Calculate gradients based on loss)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) # Clip gradients to avoid exploding gradients
             optimizer.step()  # Update model weights
             h0 = h0.detach()
             c0 = c0.detach()
@@ -87,6 +101,12 @@ def train_model(model, train_loader, num_epochs):
                 f.write(f"{counter}, loss:{loss.item()}\n")
             print({counter}, "Loss", loss.item())
             counter += 1
+
+            # graph loss in real time
+            ax.set_xlim([0, counter * (epoch +1)])
+            plt.scatter((counter * (epoch + 1)), loss.item())
+            plt.pause(0.05)
+            
 
         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
         with open("log2.txt", "a") as f:
