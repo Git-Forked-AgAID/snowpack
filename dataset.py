@@ -6,10 +6,10 @@ from torch.utils.data import Dataset, DataLoader
 VALS = ['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tmax', 'srad', 'sph', 'rmin', 'rmax', 'precip', 'dist_from_met']
 # VALS = ['lat', 'lon']
 INPUT_SIZE = len(VALS)
-HIDDEN_LAYERS = 2
-EPOCHS = 1
-BATCH_SIZE = 160
-SEQ_SIZE = 100
+HIDDEN_LAYERS = 10000
+EPOCHS = 50
+BATCH_SIZE = 32
+# SEQ_SIZE = 100
 
 # Data will be in CSV form with the following columns:
     # Date, Name, Lat, Long, elevation, southness, SWE, <------ From SWE_Values.csv & Station_info.csv
@@ -22,7 +22,7 @@ class SWEDataset(Dataset):
 
         # drop cols we don't need
         if "test.csv" not in csv_file:
-            for col in ['id', 'county', 'state', 'station', 'geometry']:
+            for col in ['id', 'county', 'state', 'station']:
                 self.data = self.data.drop(col, axis=1)
 
         # print(self.data)
@@ -32,19 +32,22 @@ class SWEDataset(Dataset):
 
     # Get the number of samples in the dataset
     def __len__(self):
-        return len(self.data) - SEQ_SIZE# Subtract sequence length to avoid index out of bounds
+        return len(self.data)# Subtract sequence length to avoid index out of bounds
 
     # retreive a data sample
     def __getitem__(self, idx):
-        row = self.data.iloc[idx:idx+SEQ_SIZE]
+        row = self.data.iloc[idx]
 
         features = row[VALS].values
         # features = row[['lat', 'lon']].values
-        target = row['swe'].iloc[-1]
+        target = row['swe']
 
         # Convert to tensors for PyTorch use
         features = np.array(features, dtype=np.float32)  # Convert to np array so compatible with torch.tensor
         # print(features.shape)
         # input()
+        # print(target)
 
-        return torch.tensor(features, dtype=torch.float32), torch.tensor(target, dtype=torch.float32)
+        rvalues = torch.tensor(features, dtype=torch.float32), torch.tensor([target], dtype=torch.float32)
+        # print(rvalues[0].shape, rvalues[1].shape)
+        return rvalues
