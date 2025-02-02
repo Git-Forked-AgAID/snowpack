@@ -3,6 +3,11 @@ import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
+INPUT_SIZE = 2
+HIDDEN_LAYERS = 4000
+EPOCHS = 1000000
+BATCH_SIZE = 160
+
 # Data will be in CSV form with the following columns:
     # Date, Name, Lat, Long, elevation, southness, SWE, <------ From SWE_Values.csv & Station_info.csv
     # Windspeed, Tmin, Tmax, SRAD, SPH, Rmin, Rmax, Precipitation <------ From meteorological data and corresponding .csv files
@@ -13,24 +18,26 @@ class SWEDataset(Dataset):
         self.data = pd.read_csv(csv_file)
 
         # drop cols we don't need
-        for col in ['id', 'county', 'state', 'station', 'geometry']:
-            self.data = self.data.drop(col, axis=1)
+        if "test.csv" not in csv_file:
+            for col in ['id', 'county', 'state', 'station', 'geometry']:
+                self.data = self.data.drop(col, axis=1)
 
-        print(self.data)
-        print(self.data.columns)
+        # print(self.data)
+        # print(self.data.columns)
 
         self.data['date'] = pd.to_datetime(self.data['date']).astype(int)
 
     # Get the number of samples in the dataset
     def __len__(self):
-        return len(self.data) # Subtract sequence length to avoid index out of bounds
+        return len(self.data) -100# Subtract sequence length to avoid index out of bounds
 
     # retreive a data sample
     def __getitem__(self, idx):
-        row = self.data.iloc[idx]
+        row = self.data.iloc[idx:idx+100]
 
-        features = row[['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tmax', 'srad', 'sph', 'rmin', 'rmax', 'precip', 'dist_from_met']].values
-        target = row['swe']
+        # features = row[['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tmax', 'srad', 'sph', 'rmin', 'rmax', 'precip', 'dist_from_met']].values
+        features = row[['lat', 'lon']].values
+        target = row['swe'].iloc[-1]
 
         # Convert to tensors for PyTorch use
         features = np.array(features, dtype=np.float32)  # Convert to np array so compatible with torch.tensor
