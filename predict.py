@@ -9,6 +9,9 @@ import dataset
 from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE
 from sklearn.model_selection import train_test_split
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 SWEdataset = dataset.SWEDataset("./clean_main.csv")
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=True)
 
@@ -99,8 +102,8 @@ def train_model(model, train_loader, num_epochs):
 def save_model(model):
     torch.save(model.state_dict(), 'SWE_Predictor.pth')
 
-def load_model(model):
-    model.load_state_dict(torch.load('SWE_Predictor.pth'))
+def load_model(model, fname):
+    model.load_state_dict(torch.load(fname))
 
 def predict(model, dataloader, h0, c0):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
@@ -117,7 +120,7 @@ def predict(model, dataloader, h0, c0):
 
     return all_predictions
 
-def predict_single_day(model, weather_tensor, h0, c0):
+def predict_single_day(model, weather_tensor, h0=None, c0=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)  # Move model to the correct device
     model.eval()  # Set model to evaluation mode
@@ -125,26 +128,53 @@ def predict_single_day(model, weather_tensor, h0, c0):
     with torch.no_grad():
         weather_tensor = weather_tensor.to(device)  # Move input to device
         prediction = model(weather_tensor, h0, c0)  # Run prediction
-        return prediction.item()  # Convert tensor to Python float
+        return prediction  # Convert tensor to Python float
 
 if __name__ == "__main__":
-    exit_program = False
-    to_train = False
-
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
     input_size = INPUT_SIZE  # Number of numerical features
     hidden_size = HIDDEN_LAYERS # number of layers connecting input to output
     num_layers = 2   # LSTM layers (input/output layers)
     output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
+    load_model(model, "./kamiak512_20epochs.pth")
+    # model.to(device)
 
-    print("Model created")
+    fmin = SWEdataset.feature_scaler.data_min_
+    fmax = SWEdataset.feature_scaler.data_max_
+    tmin = SWEdataset.target_scaler.data_min_
+    tmax = SWEdataset.target_scaler.data_max_
+    # print(fmin, fmax, tmin, tmax)
 
-    # while not exit_program:
-        # print("Train model? (y/n)")
-    h0, c0 = None, None
-    # if input().lower() == 'y':
-    print("Splitting data...")
-    #train_data, test_data = train_test_split(SWEdataset, test_size=0.2, shuffle=True)
-    print("Training model...")
-    h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
-    save_model(model)
+    inp = torch.tensor([33.65352,-109.30877,int(pd.to_datetime("1991-01-01").timestamp()*(10**9)),9027,0.888151729,2.16,-9.3,7.92,117.325,0.0016,19.78,69.42,0.0,0.0276550772915165], dtype=torch.float64)
+    # inp = SWEdataset.inptest
+
+    inp = (inp-fmin)/(fmax-fmin)
+    # inp = torch.tensor(inp, dtype=torch.float32)
+
+    # TODO::: WORRY ABOUT THE dtype F64??
+
+    print(inp.view(-1).tolist())
+    inp = inp.view(1, -1)
+    pred = predict_single_day(model, inp.type(torch.float32))[0]
+
+    pred = pred.cpu()
+
+    print(pred.tolist()[0])
+
+
+    print(tmax, tmin)
+    scaled_pred = (pred * (tmax-tmin)) + (tmin)
+    print(scaled_pred.tolist()[0])
+
+    # print("Model created")
+
+    ## while not exit_program:
+    #    # print("Train model? (y/n)")
+    #h0, c0 = None, None
+    ## if input().lower() == 'y':
+    #print("Splitting data...")
+    ##train_data, test_data = train_test_split(SWEdataset, test_size=0.2, shuffle=True)
+    #print("Training model...")
+    #h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
+    #save_model(model)

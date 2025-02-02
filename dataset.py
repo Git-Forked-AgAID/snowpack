@@ -7,9 +7,9 @@ from sklearn.preprocessing import MinMaxScaler
 VALS = ['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tmax', 'srad', 'sph', 'rmin', 'rmax', 'precip', 'dist_from_met']
 # VALS = ['lat', 'lon']
 INPUT_SIZE = len(VALS)
-HIDDEN_LAYERS = 128
-EPOCHS = 10
-BATCH_SIZE =  1024 #2**19
+HIDDEN_LAYERS = 512
+EPOCHS = 20
+BATCH_SIZE =  2**19
 # SEQ_SIZE = 100
 
 # Data will be in CSV form with the following columns:
@@ -32,14 +32,19 @@ class SWEDataset(Dataset):
         self.data['date'] = pd.to_datetime(self.data['date']).astype(int)
 
 
-
         # Normalize features
         self.feature_scaler = MinMaxScaler()
         self.data[VALS] = self.feature_scaler.fit_transform(self.data[VALS])
 
+        N = 0
+
+        print('norm_train_feat', list(self.data[VALS].iloc[N]))
+
         # Normalize target
         self.target_scaler = MinMaxScaler()
         self.data['swe'] = self.target_scaler.fit_transform(self.data[['swe']])
+        print('norm_train_swe',self.data['swe'].iloc[N])
+        self.inptest = torch.tensor(self.data[VALS].iloc[N])
 
         self.data.to_csv("normalize_clean_main.csv", index=False)
 
