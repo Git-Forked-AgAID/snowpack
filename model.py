@@ -10,7 +10,7 @@ from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE, SEQ_SIZE, NEU
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-SWEdataset = dataset.SWEDataset("./stations/0.csv")
+SWEdataset = dataset.SWEDataset("clean_main.csv")
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=False)
 
 with open("log2.txt", "w") as f:
@@ -46,11 +46,11 @@ def train_model(model, train_loader, num_epochs):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
     model.to(device) # Move model to assigned device
     criterion = nn.MSELoss() # Loss function
-    optimizer = optim.SGD(model.parameters(), lr=.0001) # Optimizer
+    optimizer = optim.SGD(model.parameters(), lr=.00001) # Optimizer
 
     # Setup Graph
     ax = plt.gca()
-    ax.set_ylim([0, .1])
+    ax.set_ylim([0, .005])
 
     h0, c0 = None, None
 
@@ -99,16 +99,16 @@ def train_model(model, train_loader, num_epochs):
 
             with open("log2.txt", "a") as f:
                 f.write(f"{counter}, loss:{loss.item()}\n")
-            #print("\t", {counter}, "Loss", loss.item())
+            print("\t", {counter}, "Loss", loss.item())
             counter += 1
 
             # graph loss in real time
-        #ax.set_xlim([0, counter * (epoch +1)])
-        ax.set_xlim([0, num_epochs])
-        # plt.scatter((counter * (epoch + 1)), loss.item())
-        plt.scatter(epoch, loss.item())
-        plt.pause(0.05)
-            
+            ax.set_xlim([0, counter * (epoch +1)])
+        #ax.set_xlim([0, num_epochs])
+            plt.scatter((counter * (epoch + 1)), loss.item())
+        #plt.scatter(epoch, loss.item())
+            plt.pause(0.05)
+        
 
         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
         with open("log2.txt", "a") as f:
@@ -136,7 +136,7 @@ def predict_single_day(model, weather_tensor, h0=None, c0=None):
 
 if __name__ == "__main__":
     exit_program = False
-    to_train = False
+    to_train = True
 
     input_size = INPUT_SIZE  # Number of numerical features
     hidden_size = NEURONS # 
