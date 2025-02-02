@@ -13,7 +13,7 @@
 - [Introduction](#introduction)
 - [Pre-Processing](#pre-processing)
 - [Training](#training)
-- [Preview](#preview)
+- [Model](#model)
 - [Haiku](#haiku)
 
 
@@ -31,7 +31,7 @@ For our hyperparameters, we are utilizing __ Epochs to ensure that enough traini
 
 With all these factors combined, we are able to make accurate predications based on historical SNOWTEL data for future SWE.
 
-## Preview
+## Model
 
 
 ## Haiku
