@@ -112,6 +112,6 @@ if __name__ == "__main__":
     # while not exit_program:
         # print("Train model? (y/n)")
     h0, c0 = None, None
-    if input().lower() == 'y':
-        h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
-        save_model(model)
+    # if input().lower() == 'y':
+    h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
+    save_model(model)

@@ -27,6 +27,8 @@ for colname in ["Rmin", "SRAD", "precip", "tmax", "tmin", "windspeed", "SPH"]:
 
 print(met_df)
 met_gdf = gpd.GeoDataFrame(met_df, geometry=gpd.points_from_xy(met_df.lat, met_df.lon))
-met_gdf.plot()
+# met_gdf.plot()
 met_df.to_csv("processed/met_out.csv")
-input()
+
+{k:v for k,v in met_gdf.groupby("date")}["1991-01-01"].to_csv("met_day1.csv")
+# input()
