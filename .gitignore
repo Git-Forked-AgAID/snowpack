@@ -3,3 +3,4 @@ data/
 SWE_Predictor.pth
 *.csv
 .DS_Store
+stations/
