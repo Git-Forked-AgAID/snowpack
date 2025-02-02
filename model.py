@@ -7,6 +7,7 @@ import numpy as np
 from torch.utils.data import DataLoader, Dataset
 import dataset
 from dataset import INPUT_SIZE, EPOCHS, HIDDEN_LAYERS, BATCH_SIZE
+from sklearn.model_selection import train_test_split
 
 SWEdataset = dataset.SWEDataset("./clean_main.csv")
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -45,12 +46,16 @@ def train_model(model, train_loader, num_epochs):
 
     for epoch in range(num_epochs):
         model.train()  # Set model to training mode
-
+        counter= 0
         # Loop through each batch in the dataloader
 
         # outputs = []
         for inputs, targets in train_loader:
             # print(len(inputs), len(targets))
+            # print("inputs")
+            # print (inputs)
+            # print("targets")
+            # print (targets)
             batch_X, batch_y = inputs.to(device), targets.to(device)
             outputs = []
             for row in batch_X:
@@ -67,6 +72,7 @@ def train_model(model, train_loader, num_epochs):
             # print(outputs, outputs.shape)
             # outputs = outputs.view(*batch_y.shape)
             outputs = torch.tensor(outputs, requires_grad=True).view(-1, 1)
+            outputs = outputs.to(device)
             # print(outputs.shape)
             loss = criterion(outputs, batch_y)  # Compute the loss
             loss.backward()  # Backward pass (Calculate gradients based on loss)
@@ -74,6 +80,8 @@ def train_model(model, train_loader, num_epochs):
             h0 = h0.detach()
             c0 = c0.detach()
 
+            print({counter}, "Loss", loss.item())
+            counter += 1
 
         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
         sys.stdout.flush()
@@ -122,9 +130,14 @@ if __name__ == "__main__":
     output_size = 1  # Predicting SWE
     model = WeatherLSTM(input_size, hidden_size, num_layers, output_size)
 
+    print("Model created")
+
     # while not exit_program:
         # print("Train model? (y/n)")
     h0, c0 = None, None
     # if input().lower() == 'y':
+    print("Splitting data...")
+    #train_data, test_data = train_test_split(SWEdataset, test_size=0.2, shuffle=True)
+    print("Training model...")
     h0, c0 = train_model(model, dataloader, EPOCHS)  # Pass dataloader to train_model
     save_model(model)

@@ -2,13 +2,14 @@ import torch
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
+from sklearn.preprocessing import MinMaxScaler
 
 VALS = ['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tmax', 'srad', 'sph', 'rmin', 'rmax', 'precip', 'dist_from_met']
 # VALS = ['lat', 'lon']
 INPUT_SIZE = len(VALS)
-HIDDEN_LAYERS = 10000
-EPOCHS = 50
-BATCH_SIZE = 32
+HIDDEN_LAYERS = 128
+EPOCHS = 10
+BATCH_SIZE =  1024 #2**19
 # SEQ_SIZE = 100
 
 # Data will be in CSV form with the following columns:
@@ -29,6 +30,18 @@ class SWEDataset(Dataset):
         # print(self.data.columns)
 
         self.data['date'] = pd.to_datetime(self.data['date']).astype(int)
+
+
+
+        # Normalize features
+        self.feature_scaler = MinMaxScaler()
+        self.data[VALS] = self.feature_scaler.fit_transform(self.data[VALS])
+
+        # Normalize target
+        self.target_scaler = MinMaxScaler()
+        self.data['swe'] = self.target_scaler.fit_transform(self.data[['swe']])
+
+        self.data.to_csv("normalize_clean_main.csv", index=False)
 
     # Get the number of samples in the dataset
     def __len__(self):
