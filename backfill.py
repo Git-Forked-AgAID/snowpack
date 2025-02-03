@@ -1,7 +1,7 @@
 import pandas as pd
 import geopandas as gpd
 
-df = pd.read_csv('./combined.csv')
+df = pd.read_csv('./processed/combined.csv')
 gdf = gpd.GeoDataFrame(df)
 
 def runpershard(d):
@@ -56,5 +56,5 @@ print(list(df.columns))
 
 df_n = df_n.groupby("geometry").apply(runpershard)
 print('done with merge')
-df_n.to_csv("backfilled2.csv")
+df_n.to_csv("processed/backfilled.csv")
 print(df_n)
