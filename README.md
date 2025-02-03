@@ -28,14 +28,15 @@ Final Presentation Video:
 </p>
 
 <p align=center>
-[![final presentation video](https://img.youtube.com/vi/UXVqL-Rfepg/0.jpg)](https://www.youtube.com/watch?v=UXVqL-Rfepg)
+<a href="https://www.youtube.com/watch?v=UXVqL-Rfepg"><img alt="final presentation video" src="https://img.youtube.com/vi/UXVqL-Rfepg/0.jpg">
 </p>
 
 <p align=center>
-Final PowerPoint Presentation:
+PowerPoint:
 </p>
+
 <p align=center>
-[Final_Presentation.pdf](./Final_Presentation.pdf)
+    <a href="./Final_Presentation.pdf" target="_blank">Final_Presentation.pdf</a>
 </p>
 
 ## Pre-processing
