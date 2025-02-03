@@ -4,6 +4,9 @@
 **.csv
 *.json
 **.json
+processed/*.csv
+stations/*.csv
+data/*/*.csv
 .DS_Store
 __pycache__/
 # stations/
