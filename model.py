@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+<<<<<<< HEAD
 mms = MinMaxScaler()
 alldata = pd.read_csv("./stations/0.csv")
 alldata['date'] = pd.to_datetime(alldata['date']).astype(int)
@@ -28,6 +29,9 @@ test_X = torch.tensor(np.array(test[VALS])).type(torch.float32)
 test_Y = torch.tensor(np.array(test['swe'])).type(torch.float32)
 
 SWEdataset = dataset.SWEDataset(train, test=False)
+=======
+SWEdataset = dataset.SWEDataset("clean_main.csv")
+>>>>>>> 86f497c139fef46efae212b16905b3b8b12f0e78
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=False)
 
 with open("log2.txt", "w") as f:
@@ -63,13 +67,17 @@ def train_model(model, train_loader, num_epochs):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # Check if GPU is available
     model.to(device) # Move model to assigned device
     criterion = nn.MSELoss() # Loss function
-    optimizer = optim.SGD(model.parameters(), lr=.0001) # Optimizer
+    optimizer = optim.SGD(model.parameters(), lr=.00001) # Optimizer
 
     # Setup Graph
     ax = plt.gca()
+<<<<<<< HEAD
     fig, ax = plt.subplots()
 
     # ax.set_ylim([0, .1])
+=======
+    ax.set_ylim([0, .005])
+>>>>>>> 86f497c139fef46efae212b16905b3b8b12f0e78
 
     h0, c0 = None, None
 
@@ -93,8 +101,21 @@ def train_model(model, train_loader, num_epochs):
 
             with open("log2.txt", "a") as f:
                 f.write(f"{counter}, loss:{loss.item()}\n")
+<<<<<<< HEAD
             counter += 1
 
+=======
+            print("\t", {counter}, "Loss", loss.item())
+            counter += 1
+
+            # graph loss in real time
+            ax.set_xlim([0, counter * (epoch +1)])
+        #ax.set_xlim([0, num_epochs])
+            plt.scatter((counter * (epoch + 1)), loss.item())
+        #plt.scatter(epoch, loss.item())
+            plt.pause(0.05)
+
+>>>>>>> 86f497c139fef46efae212b16905b3b8b12f0e78
 
         model.eval()
         with torch.no_grad():
