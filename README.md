@@ -22,11 +22,16 @@
 - This was a spatiotemporal challenge, with more info in the [challenge PDF](./SnowpackPredictionChallenge.pdf).
 
 ## Products
+
+<p align=center>
 Final Presentation Video:
+
 [![final presentation video](https://img.youtube.com/vi/UXVqL-Rfepg/0.jpg)](https://www.youtube.com/watch?v=UXVqL-Rfepg)
 
-Final PowerPoint Presentation: [Final_Presentation.pdf](./Final_Presentation.pdf)
+Final PowerPoint Presentation:
 
+[Final_Presentation.pdf](./Final_Presentation.pdf)
+</p>
 
 ## Pre-processing
 Preprocessing of data requires combining several discrete datasets into one. There are several Python scripts that use GeoPandas to perform spatial joins over the datasets.
