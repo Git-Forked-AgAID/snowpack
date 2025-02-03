@@ -1,7 +1,9 @@
-data/
 *.pth
+**.pht
 *.csv
+**.csv
 *.json
+**.json
 .DS_Store
 __pycache__/
-stations/
+# stations/

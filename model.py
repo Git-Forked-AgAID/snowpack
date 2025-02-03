@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-<<<<<<< HEAD
 mms = MinMaxScaler()
 alldata = pd.read_csv("./stations/0.csv")
 alldata['date'] = pd.to_datetime(alldata['date']).astype(int)
@@ -29,12 +28,9 @@ test_X = torch.tensor(np.array(test[VALS])).type(torch.float32)
 test_Y = torch.tensor(np.array(test['swe'])).type(torch.float32)
 
 SWEdataset = dataset.SWEDataset(train, test=False)
-=======
-SWEdataset = dataset.SWEDataset("clean_main.csv")
->>>>>>> 86f497c139fef46efae212b16905b3b8b12f0e78
 dataloader = DataLoader(SWEdataset, batch_size=BATCH_SIZE, shuffle=False)
 
-with open("log2.txt", "w") as f:
+with open("log.txt", "w") as f:
     f.write(f"loaded\n")
 
 class WeatherLSTM(nn.Module):
@@ -71,13 +67,9 @@ def train_model(model, train_loader, num_epochs):
 
     # Setup Graph
     ax = plt.gca()
-<<<<<<< HEAD
     fig, ax = plt.subplots()
 
     # ax.set_ylim([0, .1])
-=======
-    ax.set_ylim([0, .005])
->>>>>>> 86f497c139fef46efae212b16905b3b8b12f0e78
 
     h0, c0 = None, None
 
@@ -99,23 +91,9 @@ def train_model(model, train_loader, num_epochs):
             h0 = h0.detach()
             c0 = c0.detach()
 
-            with open("log2.txt", "a") as f:
+            with open("log.txt", "a") as f:
                 f.write(f"{counter}, loss:{loss.item()}\n")
-<<<<<<< HEAD
             counter += 1
-
-=======
-            print("\t", {counter}, "Loss", loss.item())
-            counter += 1
-
-            # graph loss in real time
-            ax.set_xlim([0, counter * (epoch +1)])
-        #ax.set_xlim([0, num_epochs])
-            plt.scatter((counter * (epoch + 1)), loss.item())
-        #plt.scatter(epoch, loss.item())
-            plt.pause(0.05)
-
->>>>>>> 86f497c139fef46efae212b16905b3b8b12f0e78
 
         model.eval()
         with torch.no_grad():
@@ -135,7 +113,7 @@ def train_model(model, train_loader, num_epochs):
 
 
 #         print (f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
-        with open("log2.txt", "a") as f:
+        with open("log.txt", "a") as f:
             f.write(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}\n")
 
     return h0, c0
@@ -143,7 +121,7 @@ def train_model(model, train_loader, num_epochs):
 
 # Save the model
 def save_model(model):
-    torch.save(model.state_dict(), f'SWE_Predictor_{HIDDEN_LAYERS}_{EPOCHS}epochs.pth')
+    torch.save(model.state_dict(), f'./models/SWE_Predictor_{HIDDEN_LAYERS}_{EPOCHS}epochs.pth')
 
 def load_model(model, fname):
     model.load_state_dict(torch.load(fname))
@@ -178,7 +156,7 @@ if __name__ == "__main__":
         print("Saving model...")
         save_model(model)
     else:
-        load_model(model, "./SWE_Predictor_8_10epochs.pth")
+        load_model(model, "./models/SWE_Predictor_8_10epochs.pth")
         fmin = SWEdataset.feature_scaler.data_min_
         fmax = SWEdataset.feature_scaler.data_max_
         tmin = SWEdataset.target_scaler.data_min_
