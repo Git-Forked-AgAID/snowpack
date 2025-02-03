@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapbox Map</title>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://unpkg.com/deck.gl@^9.0.0/dist.min.js"></script>
+    <script src='https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js'></script>
+    <script src="https://unpkg.com/@deck.gl/layers@^9.0.0/dist.min.js"></script>
+<script src="https://unpkg.com/@deck.gl/geo-layers@^9.0.0/dist.min.js"></script>
+
+<script src="https://unpkg.com/h3-js@^4.0.0"></script>
+
+<script type="text/javascript">
+  const {MapboxOverlay} = deck;
+
+//   const layer = new deck.H3ClusterLayer({
+//   id: 'H3ClusterLayer',
+//   data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/sf.h3clusters.json',
+
+//   stroked: true,
+//   getHexagons: d => d.hexIds,
+//   getFillColor: d => [255, (1 - d.mean / 500) * 255, 0],
+//   getLineColor: [255, 255, 255],
+//   lineWidthMinPixels: 2,
+//   pickable: true
+
+// });
+</script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        mapboxgl.accessToken = '***REMOVED***';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/dark-v11', // Map style
+            center: [-111.3, 42.5667], // Updated location (42°34'N, 111°18'W)
+            zoom: 12
+        });
+
+        // Add zoom and rotation controls
+        map.addControl(new mapboxgl.NavigationControl());
+
+
+        map.on('load', () => {
+        // Add a new vector tile source with ID 'mapillary'.
+        map.addSource('swe-tiles', {
+    type: 'raster',
+    tiles: ["http://localhost:8080/data/metrep/{z}/{x}/{y}.png"],
+    tileSize: 256
+});
+
+map.addLayer({
+    id: 'swe-heatmap',
+    type: 'raster',
+    source: 'swe-tiles'
+});
+    });
+
+        // Add a marker for the main location
+        new mapboxgl.Marker()
+            .setLngLat([-111.3, 42.5667])
+            .setPopup(new mapboxgl.Popup().setHTML("<h3>Custom Location</h3><p>42°34'N, 111°18'W</p>"))
+            .addTo(map);
+var test = 0;
+        // Load JSON from external file
+        fetch('locations.json')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(location => {
+                    //if 385, 562, 437, 613, default
+                    new mapboxgl.Marker()
+                        .setLngLat([location.longitude, location.latitude])
+                        .setPopup(new mapboxgl.Popup().setHTML(
+                            `<h3>${location.name}</h3><p>Elevation: ${location.elevation} ft</p> <img src="https://www.wcc.nrcs.usda.gov/siteimages/${location.stationId}.jpg" alt="image" width="200" height="200">`
+                        ))
+                        .addTo(map);
+                });
+            })
+            .catch(error => console.error('Error loading locations:', error));
+    </script>
+</body>
+</html>

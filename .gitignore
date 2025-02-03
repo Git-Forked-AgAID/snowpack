@@ -1,6 +1,7 @@
 data/
-./SWE_Predictor.pth
-SWE_Predictor.pth
+*.pth
 *.csv
+*.json
 .DS_Store
+__pycache__/
 stations/
