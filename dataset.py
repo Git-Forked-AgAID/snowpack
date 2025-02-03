@@ -8,17 +8,10 @@ VALS = ['lat', 'lon', 'date', 'elevation', 'southness', 'windspeed', 'tmin', 'tm
 # VALS = ['lat', 'lon']
 INPUT_SIZE = len(VALS)
 HIDDEN_LAYERS = 8
-<<<<<<< HEAD
 EPOCHS = 75
 BATCH_SIZE = 128
 SEQ_SIZE = 100
 NEURONS = 50
-=======
-EPOCHS = 10
-BATCH_SIZE = 256
-SEQ_SIZE = 100
-NEURONS = 156
->>>>>>> 86f497c139fef46efae212b16905b3b8b12f0e78
 
 # Data will be in CSV form with the following columns:
     # Date, Name, Lat, Long, elevation, southness, SWE, <------ From SWE_Values.csv & Station_info.csv
