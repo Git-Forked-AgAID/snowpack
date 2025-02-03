@@ -1,3 +1,6 @@
+# rewrite of geeksforgeeks tutorial
+# UNUSED
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -82,12 +85,12 @@ class LSTMModel(nn.Module):
             h0 = torch.zeros(self.layer_dim, x.size(0), self.hidden_dim).to(x.device)
             c0 = torch.zeros(self.layer_dim, x.size(0), self.hidden_dim).to(x.device)
 
-        
+
         # Forward pass through LSTM
         out, (hn, cn) = self.lstm(x, (h0, c0))
         out = self.fc(out[:, -1, :])  # Selecting the last output
         return out, hn, cn
-    
+
 # Initialize model, loss, and optimizer
 model = LSTMModel(input_dim=len(VALS), hidden_dim=100, layer_dim=14, output_dim=1)
 criterion = nn.MSELoss()
