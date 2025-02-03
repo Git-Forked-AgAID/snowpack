@@ -42,7 +42,7 @@ The preprocessing step can be run using `./joindata.sh`. There are similar scrip
 The data used in this hackathon is private information and therefore is not in this repository.
 
 ## Training
-Due to the time-series forcasting requrements, we have elected to use a **Long Short-Term Memory** (LSTM) **Reccurent Neural Network** (RNN). LSTMs are commonly used in tasks that require sequential data and squential prediction tasks.
+Due to the time-series forecasting requirements, we have elected to use a **Long Short-Term Memory** (LSTM) **Reccurent Neural Network** (RNN). LSTMs are commonly used in tasks that require sequential data and squential prediction tasks.
 
 With our data being pre-processed, we configured the dataset and dataloaders to feed our model. We utilize an approach with a zero-gradient optimizer and the standard mean squared loss (MSE) function for our loss function. This ensures consistent and predictable training while avoiding gradient bleed.
 
