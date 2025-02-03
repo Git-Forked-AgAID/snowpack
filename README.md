@@ -25,11 +25,16 @@
 
 <p align=center>
 Final Presentation Video:
+</p>
 
+<p align=center>
 [![final presentation video](https://img.youtube.com/vi/UXVqL-Rfepg/0.jpg)](https://www.youtube.com/watch?v=UXVqL-Rfepg)
+</p>
 
+<p align=center>
 Final PowerPoint Presentation:
-
+</p>
+<p align=center>
 [Final_Presentation.pdf](./Final_Presentation.pdf)
 </p>
 
@@ -57,6 +62,8 @@ Our end product goal was a map showing all of the SNOTEL sites and their photos 
 Because the data was from discrete SNOTEL locations, we would make a gradient of continuous SWE data using our model. This map used MapBox, qGIS and more and is stored in `site/`.
 
 ## Haiku
-```Snow melts far too fast,
+```
+Snow melts far too fast,
 mountains weep in silent streams,
-thirsty earth awaits.```
+thirsty earth awaits.
+```
