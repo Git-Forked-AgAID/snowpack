@@ -35,4 +35,12 @@ gdf = gpd.GeoDataFrame(clean, geometry=gpd.points_from_xy(clean.lon, clean.lat))
 a = {k:v for k,v in gdf.groupby("date")}["1991-01-01"]
 print(a)
 a.to_csv("processed/clean_main_day1.csv", index=False)
-a.explore("swe")
+
+a = {k:v for k,v in gdf.groupby("station")}
+i = 0
+for station, gdf in a.items():
+    print(station)
+    gdf.drop(columns='geometry').to_csv(f"stations/{i}.csv", index=False)
+    i += 1
+
+# a.explore("swe")
