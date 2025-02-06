@@ -1,5 +1,7 @@
 # Digital AgATH0N 2025 Snowpack Prediction
 **Team Name: Git Forked**
+<br/>
+**Result: 3rd place of Snowpack challenge (:**
 
 ## Team Members:
 - Adam Caudle
